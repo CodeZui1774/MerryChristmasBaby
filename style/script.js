@@ -47,20 +47,19 @@ function createFloatingEmoji() {
     setTimeout(() => emoji.remove(), 1300);
 }
 
-fillBtn.addEventListener('click', () => {
+let holdInterval = null;
+
+function increaseHeart() {
     if (heartFull) return;
+
     pop.currentTime = 0;
     pop.play();
-
     lastClickTime = Date.now();
-    clickCount++;
     pumpHeart();
     createFloatingEmoji();
 
-    if (clickCount >= 5) {
-    clickCount = 0;
     if (level < 100) {
-        level += 10;
+        level += 2; // tăng khi nhấn giữ
         fill.style.height = level + '%';
     }
 
@@ -78,13 +77,34 @@ fillBtn.addEventListener('click', () => {
         heartContainer.appendChild(congrats);
 
         setTimeout(() => {
-        congrats.remove();
-        fillBtn.style.display = 'none';
-        giftBtn.style.display = 'inline-block';
+            congrats.remove();
+            fillBtn.style.display = 'none';
+            giftBtn.style.display = 'inline-block';
         }, 2000);
     }
-    }
+}
+
+// Bắt đầu giữ
+fillBtn.addEventListener('mousedown', () => {
+    if (heartFull) return;
+    increaseHeart();
+    holdInterval = setInterval(increaseHeart, 120); // tăng liên tục
 });
+
+fillBtn.addEventListener('touchstart', () => {
+    if (heartFull) return;
+    increaseHeart();
+    holdInterval = setInterval(increaseHeart, 120);
+});
+
+// Thả ra thì dừng
+['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(eventName => {
+    fillBtn.addEventListener(eventName, () => {
+        clearInterval(holdInterval);
+        holdInterval = null;
+    });
+});
+
 
 giftBtn.addEventListener('click', () => {
     heart.classList.add('pump');
